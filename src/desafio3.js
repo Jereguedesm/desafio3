@@ -1,5 +1,9 @@
-/*import { promises as fs } from "fs"
-const path = "./products.json"
+import express from 'express';
+import { promises as fs } from 'fs';
+
+const path = './products.json';
+const PORT = 4000;
+const app = express();
 
 class ProductManager {
     constructor() {
@@ -80,8 +84,6 @@ class ProductManager {
     }
 }
 
-
-
 class Product {
     constructor(title, description, price, code, stock, thumbnail) {
         if (!title || !description || !price || !code || !stock || !thumbnail) {
@@ -105,7 +107,7 @@ class Product {
         /*if (typeof thumbnail !== "string") {
             throw new Error("La URL de la imagen (thumbnail) debe ser una cadena de texto.")
         }*/ 
-/*
+
         this.title = title
         this.description = description
         this.price = price
@@ -123,47 +125,44 @@ class Product {
         return this.idIncrement
     }
 }
+const productManager = new ProductManager();
 
-const papa = new Product("Papa", "Es un tuberculo", 200, "PAPA200", 137, [])
-const zanahoria = new Product("Zanahoria", "Es una verdura, creo", 350, "ZAZA350", 112, [])
-const tomate = new Product("Tomate", "Es una fruta", 400, "TMTE400", 666, [])
-const pera = new Product("Pera", "La mejor fruta lejos", 1200, "PERA120", 73, [])
+app.use(express.json());
 
-const productManager = new ProductManager()
+app.get('/', (req, res) => {
+    res.send('Muy buenos días');
+});
 
-productManager.addProduct(papa)
-productManager.addProduct(zanahoria)
-productManager.addProduct(tomate)
-productManager.addProduct(pera)
+app.post('/add-product', (req, res) => {
+    const productData = req.body;
+    const product = new Product(
+        productData.title,
+        productData.description,
+        productData.price,
+        productData.code,
+        productData.stock,
+        productData.thumbnail
+    );
 
-productManager.getProducts()
+    try {
+        productManager.addProduct(product);
+        res.status(201).send('Producto agregado con éxito');
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+});
 
-productManager.getProductById(4)
-*/
+app.get('/products', (req, res) => {
+    productManager.getProducts();
+    res.send('Productos listados en la consola');
+});
 
-/*
-import http from "http"
-
-const PORT = 4000
-const server = http.createServer((req, res) => {
-    res.end("Muy buenos dias")
-})
-
-server.listen(PORT, () => {
-    console.log(`Server on port ${PORT}`)
-})*/
-
-
-import express from "express"
-
-const PORT = 4000
-
-const app = express()
-
-app.get("/", (req, res) => {
-    res.send("Hola, muy buenos días")
-})
+app.get('/products/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    productManager.getProductById(id);
+    res.send(`Producto con ID ${id} mostrado en la consola`);
+});
 
 app.listen(PORT, () => {
-    console.log(`Server on port ${PORT}`)
-})
+    console.log(`Server on port ${PORT}`);
+});
